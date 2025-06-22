@@ -1,0 +1,22 @@
+🎯 Tool Features
+
+1. Download — Download files from given URLs concurrently
+2. Compress — Compress files using gzip
+3. Analyze — Parse log files to extract metrics (like request count, error rate)
+
+
+🧪 Sample Commands
+
+# Download files from urls.txt
+go run main.go download -input=urls.txt -out=downloads/
+
+# Compress all files in folder
+go run main.go compress -dir=downloads/
+
+# Analyze a log file
+go run main.go analyze -file=server.log
+
+
+📚 DOCS: 
+1. CLI arguments: https://gobyexample.com/command-line-arguments
+2. CLI flags: https://gobyexample.com/command-line-flags
