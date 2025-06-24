@@ -24,3 +24,9 @@ go run main.go analyze -file=server.log
 
 🕛 Tools:
 1. Resume failed downloads, monitor etc: https://github.com/cavaliergopher/grab
+
+Improvements
+1. Lack of concurrency limits
+You're launching 100s of goroutines if there are 100s of URLs. This can overload your system/network.
+
+✅ Fix: Use a buffered channel as a semaphore (optional improvement, I can help later)

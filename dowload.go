@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,22 +30,31 @@ func HandleDownload(input string, output string) {
 		}
 	}
 
+	wg := &sync.WaitGroup{}
+
+	wg.Add(len(urls))
 	// Download Files
 	for _, url := range urls {
-		downloadFile(url, output)
+		go downloadFile(url, output, wg)
 	}
+
+	wg.Wait()
 }
 
-func downloadFile(url string, destDir string) {
+func downloadFile(url, destDir string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	// Create destDir if doesn't exist
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create output directory: %v", err)
-		return
 	}
 
 	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to download file: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("Skipped %s: HTTP %d\n", url, resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
@@ -54,19 +64,18 @@ func downloadFile(url string, destDir string) {
 	if fileName == "" {
 		fileName = fmt.Sprintf("file-%d", time.Now().UnixNano())
 	}
-	fmt.Println("filename", fileName)
+	fmt.Println("filename:", fileName)
 
 	filePath := filepath.Join(destDir, fileName)
-	fmt.Println("filePath", filePath)
 	out, err := os.Create(filePath)
 
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to create filePath: %v", err)
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to create file: %v", err)
 	}
 }
