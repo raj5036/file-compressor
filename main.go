@@ -26,7 +26,13 @@ func main() {
 
 		HandleDownload(*input, *output)
 	case "compress":
-		fmt.Println("Compress")
+		compressSubCmd := flag.NewFlagSet("compress", flag.ExitOnError)
+		input := compressSubCmd.String("input", "", "Path to dir with files")
+		output := compressSubCmd.String("output", "", "Path to zipped output directory")
+
+		compressSubCmd.Parse(os.Args[2:])
+
+		HandleCompress(*input, *output)
 	case "analyze":
 		fmt.Println("Analyze")
 	default:

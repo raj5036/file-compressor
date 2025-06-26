@@ -15,7 +15,7 @@ import (
 func HandleDownload(input string, output string) {
 	data, err := os.ReadFile(input)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error reading input file: %v", err)
 	}
 
 	lines := strings.Split(string(data), "\n")
