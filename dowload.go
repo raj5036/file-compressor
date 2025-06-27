@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,7 +14,7 @@ import (
 	"time"
 )
 
-func HandleDownload(input string, output string) {
+func HandleDownload(input, output string, shouldAnalyze bool) {
 	data, err := os.ReadFile(input)
 	if err != nil {
 		log.Fatalf("Error reading input file: %v", err)
@@ -39,6 +41,22 @@ func HandleDownload(input string, output string) {
 	}
 
 	wg.Wait()
+
+	if shouldAnalyze {
+		totalFileCount, totalFileSize, fileExtCounts, analyze_err := analyzeDownloadDirectory(output)
+		if analyze_err != nil {
+			log.Fatalf("Error analyzing downloaded files: %v\n", analyze_err)
+		}
+
+		fmt.Println("\n💻Analyzed output:")
+		fmt.Printf("✅ Total files: %v\n", totalFileCount)
+		fmt.Printf("📦 Total size: %v mb\n", math.Floor(totalFileSize*100)/100)
+
+		fmt.Println("🗂️ File types:")
+		for extension, count := range fileExtCounts {
+			fmt.Printf("%s: %d\n", extension, count)
+		}
+	}
 }
 
 func downloadFile(url, destDir string, wg *sync.WaitGroup) {
@@ -78,4 +96,34 @@ func downloadFile(url, destDir string, wg *sync.WaitGroup) {
 	if err != nil {
 		log.Fatalf("Failed to create file: %v", err)
 	}
+}
+
+func analyzeDownloadDirectory(destDir string) (int, float64, map[string]int, error) {
+	var totalFileCount int = 0
+	var totalFileSize float64 = 0 // In mb
+	fileExtCounts := make(map[string]int)
+
+	err := filepath.Walk(destDir, func(path string, fileInfo fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if fileInfo.IsDir() { // TODO: Handle nested directories
+			return nil
+		}
+
+		totalFileCount++
+		totalFileSize += float64(fileInfo.Size())
+
+		fileExtension := filepath.Ext(fileInfo.Name())
+		if fileExtCounts[fileExtension] == 0 {
+			fileExtCounts[fileExtension] = 1
+		} else {
+			fileExtCounts[fileExtension]++
+		}
+
+		return err
+	})
+
+	return totalFileCount, totalFileSize / 1024.0 / 1024.0, fileExtCounts, err
 }

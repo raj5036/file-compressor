@@ -8,7 +8,7 @@
 🧪 Sample Commands
 
 # Download files from urls.txt
-go run . download -input="urls.txt" -output=downloads/
+go run . download -input="urls.txt" -output=downloads/ -analyze=true
 
 # Compress all files in folder
 go run . compress -input=downloads/ -output=compressed.tar.gz
