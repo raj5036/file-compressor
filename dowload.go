@@ -32,12 +32,22 @@ func HandleDownload(input, output string, shouldAnalyze bool) {
 		}
 	}
 
+	const maxConcurrentDownloads = 5
+	semaphore := make(chan struct{}, maxConcurrentDownloads)
 	wg := &sync.WaitGroup{}
 
-	wg.Add(len(urls))
 	// Download Files
 	for _, url := range urls {
-		go downloadFile(url, output, wg)
+		semaphore <- struct{}{}
+		wg.Add(1)
+
+		go func(u string) {
+			defer wg.Done()
+			downloadFile(u, output)
+
+			<-semaphore
+		}(url)
+
 	}
 
 	wg.Wait()
@@ -59,8 +69,7 @@ func HandleDownload(input, output string, shouldAnalyze bool) {
 	}
 }
 
-func downloadFile(url, destDir string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func downloadFile(url, destDir string) {
 
 	// Create destDir if doesn't exist
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
