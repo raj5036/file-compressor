@@ -33,12 +33,12 @@ func HandleDownload(input, output string, shouldAnalyze bool) {
 	}
 
 	const maxConcurrentDownloads = 5
-	semaphore := make(chan struct{}, maxConcurrentDownloads)
+	semaphore := make(chan int, maxConcurrentDownloads)
 	wg := &sync.WaitGroup{}
 
 	// Download Files
 	for _, url := range urls {
-		semaphore <- struct{}{}
+		semaphore <- 1
 		wg.Add(1)
 
 		go func(u string) {
