@@ -18,6 +18,12 @@ A fast and lightweight command-line tool written in **Go** that allows you to:
 
 ---
 
+## Commands
+1. Download and Analyze file: `go run . download -input="urls.txt" -output=downloads/ -analyze=true` (Sample "urls.txt" can be found in the codebase)
+2. Compress downloaded files: `go run . compress -input=downloads/ -output=compressed.tar.gz`
+
+---
+
 ## 📌 Requirements
 - Go 1.18+
 - Internet access for downloads
